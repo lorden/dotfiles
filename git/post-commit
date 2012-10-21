@@ -1,0 +1,2 @@
+# Take a pic on commit, goes to main repo directory
+streamer -c /dev/video0 -b 32 -o "`date +%Y-%m-%d_%H:%M:%S`.jpeg"
