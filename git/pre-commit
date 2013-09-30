@@ -1,0 +1,6 @@
+#!/bin/sh
+# Redirect output to stderr.
+exec 1>&2
+FORBIDDEN='todo'
+git diff --cached --name-only | xargs grep --with-filename -i -n "$FORBIDDEN" && echo "COMMIT REJECTED Found '$FORBIDDEN' references. Please remove them before commiting" && exit 1
+exit
