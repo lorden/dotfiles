@@ -31,7 +31,7 @@ Bundle 'tpope/vim-fugitive'
 
 Bundle 'vim-scripts/taglist.vim'
 let Tlist_Ctags_Cmd = "/usr/bin/ctags"
-let Tlist_WinWidth = 100
+let Tlist_WinWidth = 50
 
 Bundle 'vim-scripts/AutoTag'
 
