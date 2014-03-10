@@ -37,6 +37,8 @@ Bundle 'vim-scripts/AutoTag'
 
 Bundle 'lepture/vim-jinja'
 
+Bundle 'mustache/vim-mustache-handlebars'
+
 filetype plugin indent on     " required for Vundle
 
 "" Highlight all search pattern matches
