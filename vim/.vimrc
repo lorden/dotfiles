@@ -35,6 +35,8 @@ let Tlist_WinWidth = 50
 
 Bundle 'vim-scripts/AutoTag'
 
+Bundle 'lepture/vim-jinja'
+
 filetype plugin indent on     " required for Vundle
 
 "" Highlight all search pattern matches
@@ -81,8 +83,6 @@ autocmd FileType php source ~/.vim/php.vim
 " Mustache, handlebars, jinja
 autocmd FileType mustache setlocal set syntax=html
 autocmd FileType handlebars setlocal set syntax=html
-autocmd FileType jinja setlocal set syntax=html
-autocmd FileType jinja2 setlocal set syntax=html
 
 " Shortcuts
 nnoremap <F3> :NERDTreeToggle<CR>
