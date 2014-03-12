@@ -39,6 +39,10 @@ Bundle 'lepture/vim-jinja'
 
 Bundle 'mustache/vim-mustache-handlebars'
 
+Bundle 'ervandew/supertab'
+
+Bundle 'nvie/vim-flake8'
+
 filetype plugin indent on     " required for Vundle
 
 "" Highlight all search pattern matches
