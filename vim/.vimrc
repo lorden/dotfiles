@@ -72,6 +72,9 @@ set expandtab
 " Set line numbers
 set nu
 
+" Syntax always on
+syntax on
+
 " Keep the same indentation as the previous line
 set autoindent
 
