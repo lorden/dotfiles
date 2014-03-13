@@ -20,6 +20,8 @@ Bundle 'kien/ctrlp.vim'
 Bundle 'bling/vim-airline'
 set laststatus=2 "  always on
 set t_Co=256  " colorful
+let g:airline_powerline_fonts = 1
+let g:airline_theme = 'light'
 
 Bundle 'scrooloose/syntastic'
 
@@ -89,6 +91,9 @@ autocmd FileType php source ~/.vim/php.vim
 " Mustache, handlebars, jinja
 autocmd FileType mustache setlocal set syntax=html
 autocmd FileType handlebars setlocal set syntax=html
+
+" Salt files
+au BufNewFile,BufRead *.sls set filetype=yaml
 
 " Shortcuts
 nnoremap <F3> :NERDTreeToggle<CR>
