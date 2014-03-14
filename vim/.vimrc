@@ -26,6 +26,7 @@ let g:airline_theme = 'light'
 Bundle 'scrooloose/syntastic'
 
 Bundle 'scrooloose/nerdtree'
+autocmd vimenter * if !argc() | NERDTree | endif
 
 Bundle 'edkolev/promptline.vim'
 
