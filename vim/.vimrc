@@ -46,6 +46,9 @@ Bundle 'ervandew/supertab'
 
 Bundle 'nvie/vim-flake8'
 
+Bundle 'klen/rope-vim'
+let ropevim_vim_completion=1
+
 filetype plugin indent on     " required for Vundle
 
 "" Highlight all search pattern matches
@@ -102,3 +105,6 @@ au BufNewFile,BufRead *.sls set filetype=yaml
 " Shortcuts
 nnoremap <F3> :NERDTreeToggle<CR>
 nnoremap <F4> :TlistToggle<CR>
+
+" Load custom properties
+source ~/.vim/custom
