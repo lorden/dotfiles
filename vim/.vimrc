@@ -65,7 +65,7 @@ nmap <C-A-PageUp> :tabprevious<CR>
 imap <C-A-PageUp> <Esc>:tabprevious<CR>i
 
 " Cursorline
-set cursorline
+set cursorline cursorcolumn
 
 " File encodings
 set fileencodings=utf-8,latin1
@@ -88,6 +88,9 @@ set smartindent
 " Global indent
 set tabstop=4
 set shiftwidth=4
+"
+" Load custom properties
+source ~/.vim/custom.vim
 
 " Python source
 autocmd FileType python source ~/.vim/py.vim
@@ -106,5 +109,4 @@ au BufNewFile,BufRead *.sls set filetype=yaml
 nnoremap <F3> :NERDTreeToggle<CR>
 nnoremap <F4> :TlistToggle<CR>
 
-" Load custom properties
-source ~/.vim/custom
+set paste
