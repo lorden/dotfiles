@@ -27,6 +27,9 @@ alias gcm='git commit -m'
 alias gaf='git add -f'
 alias ga='git add'
 
+# python
+alias py='python'
+
 # prompt cuteness
 function parse_git_dirty() {
     [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] && echo "*"
