@@ -110,3 +110,6 @@ nnoremap <F3> :NERDTreeToggle<CR>
 nnoremap <F4> :TlistToggle<CR>
 
 set paste
+
+" Ignore pyc files in NERDTreeToggle
+let NERDTreeIgnore = ['\.pyc$']
