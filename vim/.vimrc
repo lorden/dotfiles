@@ -113,3 +113,6 @@ set paste
 
 " Ignore pyc files in NERDTreeToggle
 let NERDTreeIgnore = ['\.pyc$']
+
+" GIT commit message line length
+autocmd Filetype gitcommit setlocal spell textwidth=72
