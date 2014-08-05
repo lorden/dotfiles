@@ -116,3 +116,6 @@ let NERDTreeIgnore = ['\.pyc$']
 
 " GIT commit message line length
 autocmd Filetype gitcommit setlocal spell textwidth=72
+
+" Let mouse be helpful if exists
+set mouse=a
