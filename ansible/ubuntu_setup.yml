@@ -56,6 +56,7 @@
           - firefox
           - docker.io
           - docker-compose
+          - vim
         state: present
     
     # Install VS Code Insiders (needs extra steps as it's not in standard repos)
