@@ -1,0 +1,127 @@
+---
+# Ubuntu Setup Playbook
+- name: Configure Fresh Ubuntu Installation
+  hosts: localhost
+  become: yes  # Run tasks with sudo
+  tasks:
+    # Update all packages
+    - name: Update apt cache and upgrade all packages
+      apt:
+        update_cache: yes
+        upgrade: full
+        autoremove: yes
+        autoclean: yes
+      
+    # Remove Snaps
+    - name: Remove Firefox snap
+      snap:
+        name: firefox
+        state: absent
+      ignore_errors: yes
+    
+    - name: Remove all other snaps
+      shell: snap list --all | awk '{print $1}' | grep -v "^Name$" | xargs -I{} sudo snap remove {}
+      args:
+        executable: /bin/bash
+      ignore_errors: yes
+
+    # Get rid of snapd
+    - name: Remove snapd completely
+      apt:
+        name: snapd
+        state: absent
+        purge: yes
+        autoremove: yes
+    
+    # Add Mozilla team PPA for Firefox
+    - name: Add Mozilla team PPA for Firefox
+      apt_repository:
+        repo: ppa:mozillateam/ppa
+        state: present
+    
+    # Set Firefox preference file to prefer the apt version
+    - name: Create preference file for Firefox
+      copy:
+        dest: /etc/apt/preferences.d/mozilla-firefox
+        content: |
+          Package: *
+          Pin: release o=LP-PPA-mozillateam
+          Pin-Priority: 1001
+
+    # Install essential applications
+    - name: Install applications
+      apt:
+        name:
+          - tilix
+          - firefox
+          - docker.io
+          - docker-compose
+        state: present
+    
+    # Install VS Code Insiders (needs extra steps as it's not in standard repos)
+    - name: Install VS Code Insiders dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - wget
+          - gpg
+        state: present
+    
+    - name: Add Microsoft GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+    
+    - name: Add VS Code Insiders repository
+      apt_repository:
+        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+        state: present
+        filename: vscode-insiders
+    
+    - name: Install VS Code Insiders
+      apt:
+        name: code-insiders
+        update_cache: yes
+        state: present
+    
+    # Install Slack (using .deb package)
+    - name: Get the latest Slack download URL
+      shell: curl -s https://slack.com/downloads/linux | grep -o 'https://downloads.slack-edge.com/releases/linux/[^"]*' | head -1
+      register: slack_url
+      args:
+        executable: /bin/bash
+    
+    - name: Download latest Slack .deb package
+      get_url:
+        url: "{{ slack_url.stdout }}"
+        dest: /tmp/slack.deb
+      when: slack_url.stdout != ""
+    
+    - name: Install Slack
+      apt:
+        deb: /tmp/slack.deb
+        state: present
+      when: slack_url.stdout != ""
+      
+    - name: Fallback to installing Slack via apt repository if web scraping fails
+      block:
+        - name: Add Slack repository key
+          apt_key:
+            url: https://packagecloud.io/slacktechnologies/slack/gpgkey
+            state: present
+          when: slack_url.stdout == ""
+        
+        - name: Add Slack repository
+          apt_repository:
+            repo: deb https://packagecloud.io/slacktechnologies/slack/debian/ jessie main
+            state: present
+            filename: slack
+          when: slack_url.stdout == ""
+        
+        - name: Install Slack from repository
+          apt:
+            name: slack-desktop
+            update_cache: yes
+            state: present
+          when: slack_url.stdout == ""
+      when: slack_url.stdout == ""
