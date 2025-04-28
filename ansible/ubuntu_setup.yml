@@ -12,26 +12,6 @@
         autoremove: yes
         autoclean: yes
       
-    # Remove Snaps
-    - name: Remove Firefox snap
-      snap:
-        name: firefox
-        state: absent
-      ignore_errors: yes
-    
-    - name: Remove all other snaps
-      shell: snap list --all | awk '{print $1}' | grep -v "^Name$" | xargs -I{} sudo snap remove {}
-      args:
-        executable: /bin/bash
-      ignore_errors: yes
-
-    # Get rid of snapd
-    - name: Remove snapd completely
-      apt:
-        name: snapd
-        state: absent
-        purge: yes
-        autoremove: yes
 
     # Include Firefox setup tasks from firefox.yml
     - name: Include Firefox setup tasks

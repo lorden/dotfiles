@@ -1,5 +1,11 @@
 ---
 # tasks file for installing Firefox via Mozilla APT repository
+- name: Remove Firefox snap
+  snap:
+    name: firefox
+    state: absent
+  ignore_errors: yes
+
 - name: Ensure dependencies for Firefox installation are present
   become: yes
   apt:
