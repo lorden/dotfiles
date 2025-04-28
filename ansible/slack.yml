@@ -10,17 +10,27 @@
     state: present
 
 # Attempt to install via direct .deb download (preferred)
-- name: Download latest Slack .deb package
+- name: Get the final Slack .deb download URL
+  become: no # Doesn't require root
+  shell: curl -Ls -o /dev/null -w %{url_effective} "https://slack.com/downloads/instructions/linux?ddl=1&build=deb"
+  register: slack_url_result
+  args:
+    executable: /bin/bash
+  changed_when: false
+  check_mode: no
+
+- name: Download latest Slack .deb package using the final URL
   become: yes
   get_url:
-    url: "https://slack.com/downloads/instructions/linux?ddl=1&build=deb"
+    url: "{{ slack_url_result.stdout }}"
     dest: /tmp/slack.deb
     mode: '0644'
-  register: download_result
+  when: slack_url_result.stdout is defined and slack_url_result.stdout != ""
 
 - name: Install Slack from downloaded .deb
   become: yes
   apt:
     deb: /tmp/slack.deb
     state: present
+  when: slack_url_result.stdout is defined and slack_url_result.stdout != "" # Only install if download URL was found and download likely succeeded
 
