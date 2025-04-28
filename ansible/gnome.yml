@@ -6,18 +6,29 @@
     name: unzip
     state: present
 
-- name: Create temporary directory for font download
-  ansible.builtin.tempfile:
-    state: directory
-    suffix: barlow_font
-  register: temp_font_dir
+# Define a temporary path in /tmp
+- name: Set temporary download path variable
+  set_fact:
+    temp_font_dir_path: "/tmp/barlow_font_{{ 100000 | random }}"
+    temp_font_zip_path: "/tmp/barlow_font_{{ 100000 | random }}.zip"
 
-- name: Download and unarchive Barlow font from Google Fonts
+- name: Create temporary directory for font download in /tmp
+  ansible.builtin.file:
+    path: "{{ temp_font_dir_path }}"
+    state: directory
+    mode: '0777' # Ensure ansible user can write here
+
+- name: Download Barlow font files from GitHub (more reliable source)
+  ansible.builtin.get_url:
+    url: "https://github.com/jpt/barlow/archive/refs/heads/master.zip"
+    dest: "{{ temp_font_zip_path }}"
+  register: font_download
+
+- name: Extract Barlow font files
   ansible.builtin.unarchive:
-    src: https://fonts.google.com/download?family=Barlow # URL for downloading the Barlow family zip
-    dest: "{{ temp_font_dir.path }}"
+    src: "{{ temp_font_zip_path }}"
+    dest: "{{ temp_font_dir_path }}"
     remote_src: yes
-    extra_opts: [--strip-components=1] # Adjust based on actual zip structure if needed, aiming to get .ttf files directly
   register: unarchive_result
 
 - name: Create system font directory for Barlow
@@ -26,15 +37,13 @@
     state: directory
     mode: '0755'
 
-# Note: Google Fonts zip might contain subdirectories like 'static'. 
-# This task assumes .ttf files are directly in the extracted path after stripping components.
-# Adjust the 'src' path if the structure is different (e.g., "{{ temp_font_dir.path }}/static/").
+# GitHub repository has fonts in the 'fonts/otf' and 'fonts/ttf' directories
 - name: Copy Barlow font files
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: /usr/local/share/fonts/truetype/barlow/
     mode: '0644'
-  loop: "{{ lookup('ansible.builtin.fileglob', temp_font_dir.path + '/*.ttf', wantlist=True) }}"
+  loop: "{{ lookup('ansible.builtin.fileglob', temp_font_dir_path + '/barlow-master/fonts/ttf/*.ttf', wantlist=True) }}"
 
 - name: Update font cache
   command: fc-cache -fv
@@ -42,9 +51,9 @@
 
 - name: Remove temporary font directory
   ansible.builtin.file:
-    path: "{{ temp_font_dir.path }}"
+    path: "{{ temp_font_dir_path }}"
     state: absent
-  when: temp_font_dir.path is defined
+  when: temp_font_dir_path is defined
 
 - name: Set Barlow as default interface font
   become: no # gsettings should run as the user
