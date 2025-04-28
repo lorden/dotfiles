@@ -1,0 +1,30 @@
+---
+- name: Install Visual Studio Code Insiders
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - gpg
+        state: present
+
+    - name: Add Microsoft GPG key
+      ansible.builtin.get_url:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        dest: /etc/apt/trusted.gpg.d/microsoft.asc
+        mode: '0644'
+        force: yes
+
+    - name: Add VS Code Insiders repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+        filename: vscode-insiders
+        state: present
+        update_cache: yes
+
+    - name: Install VS Code Insiders (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: code-insiders
+        state: present

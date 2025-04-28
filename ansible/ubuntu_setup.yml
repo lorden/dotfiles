@@ -59,31 +59,15 @@
           - vim
         state: present
     
-    # Install VS Code Insiders (needs extra steps as it's not in standard repos)
-    - name: Install VS Code Insiders dependencies
+    # Clean up unnecessary packages
+    - name: Remove unnecessary packages
       apt:
-        name:
-          - apt-transport-https
-          - wget
-          - gpg
-        state: present
+        autoremove: yes
+        purge: yes
     
-    - name: Add Microsoft GPG key
-      apt_key:
-        url: https://packages.microsoft.com/keys/microsoft.asc
-        state: present
-    
-    - name: Add VS Code Insiders repository
-      apt_repository:
-        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
-        state: present
-        filename: vscode-insiders
-    
-    - name: Install VS Code Insiders
-      apt:
-        name: code-insiders
-        update_cache: yes
-        state: present
+    # Include VS Code setup tasks
+    - name: Include VS Code setup tasks
+      include_tasks: vscode.yml
     
     # Install Slack (using .deb package)
     - name: Get the latest Slack download URL
