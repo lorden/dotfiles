@@ -12,12 +12,20 @@
         autoremove: yes
         autoclean: yes
       
-
     # Include Firefox setup tasks from firefox.yml
     - name: Include Firefox setup tasks
       include_tasks: firefox.yml
 
-    # Install essential applications (excluding Firefox, now handled by include_tasks)
+    
+    # Include VS Code setup tasks
+    - name: Include VS Code setup tasks
+      include_tasks: vscode.yml
+
+    # Include Slack setup tasks
+    - name: Include Slack setup tasks
+      include_tasks: slack.yml
+
+    # Install essential applications
     - name: Install applications
       apt:
         name:
@@ -32,49 +40,3 @@
       apt:
         autoremove: yes
         purge: yes
-    
-    # Include VS Code setup tasks
-    - name: Include VS Code setup tasks
-      include_tasks: vscode.yml
-    
-    # Install Slack (using .deb package)
-    - name: Get the latest Slack download URL
-      shell: curl -s https://slack.com/downloads/linux | grep -o 'https://downloads.slack-edge.com/releases/linux/[^"]*' | head -1
-      register: slack_url
-      args:
-        executable: /bin/bash
-    
-    - name: Download latest Slack .deb package
-      get_url:
-        url: "{{ slack_url.stdout }}"
-        dest: /tmp/slack.deb
-      when: slack_url.stdout != ""
-    
-    - name: Install Slack
-      apt:
-        deb: /tmp/slack.deb
-        state: present
-      when: slack_url.stdout != ""
-      
-    - name: Fallback to installing Slack via apt repository if web scraping fails
-      block:
-        - name: Add Slack repository key
-          apt_key:
-            url: https://packagecloud.io/slacktechnologies/slack/gpgkey
-            state: present
-          when: slack_url.stdout == ""
-        
-        - name: Add Slack repository
-          apt_repository:
-            repo: deb https://packagecloud.io/slacktechnologies/slack/debian/ jessie main
-            state: present
-            filename: slack
-          when: slack_url.stdout == ""
-        
-        - name: Install Slack from repository
-          apt:
-            name: slack-desktop
-            update_cache: yes
-            state: present
-          when: slack_url.stdout == ""
-      when: slack_url.stdout == ""

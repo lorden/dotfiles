@@ -1,0 +1,34 @@
+---
+# tasks file for installing Slack
+
+- name: Ensure dependencies for Slack installation are present
+  become: yes
+  apt:
+    name:
+      - curl
+      - gpg # Needed for the fallback repository key handling
+    state: present
+
+# Attempt to install via direct .deb download (preferred)
+- name: Get the latest Slack download URL via web scraping
+  become: no # Doesn't require root
+  shell: curl -s https://slack.com/downloads/linux | grep -o 'https://downloads.slack-edge.com/releases/linux/[^"]*' | head -1
+  register: slack_url
+  args:
+    executable: /bin/bash
+  changed_when: false # This task only retrieves information
+  check_mode: no # Always run this check
+
+- name: Download latest Slack .deb package
+  become: yes
+  get_url:
+    url: "{{ slack_url.stdout }}"
+    dest: /tmp/slack.deb
+    mode: '0644'
+
+- name: Install Slack from downloaded .deb
+  become: yes
+  apt:
+    deb: /tmp/slack.deb
+    state: present
+
