@@ -10,21 +10,13 @@
     state: present
 
 # Attempt to install via direct .deb download (preferred)
-- name: Get the latest Slack download URL via web scraping
-  become: no # Doesn't require root
-  shell: curl -s https://slack.com/downloads/linux | grep -o 'https://downloads.slack-edge.com/releases/linux/[^"]*' | head -1
-  register: slack_url
-  args:
-    executable: /bin/bash
-  changed_when: false # This task only retrieves information
-  check_mode: no # Always run this check
-
 - name: Download latest Slack .deb package
   become: yes
   get_url:
-    url: "{{ slack_url.stdout }}"
+    url: "https://slack.com/downloads/instructions/linux?ddl=1&build=deb"
     dest: /tmp/slack.deb
     mode: '0644'
+  register: download_result
 
 - name: Install Slack from downloaded .deb
   become: yes
