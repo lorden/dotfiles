@@ -25,6 +25,10 @@
     - name: Include Slack setup tasks
       include_tasks: slack.yml
 
+    # Include GNOME customization tasks
+    - name: Include GNOME customization tasks
+      include_tasks: gnome.yml
+
     # Install essential applications
     - name: Install applications
       apt:

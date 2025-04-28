@@ -1,0 +1,59 @@
+---
+# GNOME Customization Tasks
+
+- name: Ensure unzip is installed
+  apt:
+    name: unzip
+    state: present
+
+- name: Create temporary directory for font download
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: barlow_font
+  register: temp_font_dir
+
+- name: Download and unarchive Barlow font from Google Fonts
+  ansible.builtin.unarchive:
+    src: https://fonts.google.com/download?family=Barlow # URL for downloading the Barlow family zip
+    dest: "{{ temp_font_dir.path }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1] # Adjust based on actual zip structure if needed, aiming to get .ttf files directly
+  register: unarchive_result
+
+- name: Create system font directory for Barlow
+  ansible.builtin.file:
+    path: /usr/local/share/fonts/truetype/barlow
+    state: directory
+    mode: '0755'
+
+# Note: Google Fonts zip might contain subdirectories like 'static'. 
+# This task assumes .ttf files are directly in the extracted path after stripping components.
+# Adjust the 'src' path if the structure is different (e.g., "{{ temp_font_dir.path }}/static/").
+- name: Copy Barlow font files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /usr/local/share/fonts/truetype/barlow/
+    mode: '0644'
+  loop: "{{ lookup('ansible.builtin.fileglob', temp_font_dir.path + '/*.ttf', wantlist=True) }}"
+
+- name: Update font cache
+  command: fc-cache -fv
+  changed_when: true # Assume cache always needs updating after potential font changes
+
+- name: Remove temporary font directory
+  ansible.builtin.file:
+    path: "{{ temp_font_dir.path }}"
+    state: absent
+  when: temp_font_dir.path is defined
+
+- name: Set Barlow as default interface font
+  become: no # gsettings should run as the user
+  command: gsettings set org.gnome.desktop.interface font-name 'Barlow 11'
+
+- name: Set Barlow as default document font
+  become: no # gsettings should run as the user
+  command: gsettings set org.gnome.desktop.interface document-font-name 'Barlow 11'
+
+- name: Set Barlow Condensed as default monospace font
+  become: no # gsettings should run as the user
+  command: gsettings set org.gnome.desktop.interface monospace-font-name 'Barlow Condensed 11'
