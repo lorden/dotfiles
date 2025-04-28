@@ -6,30 +6,40 @@
     name: unzip
     state: present
 
-# Define a temporary path in /tmp
-- name: Set temporary download path variable
+# Define a temporary path in /tmp for all font operations
+- name: Set temporary font directory path
   set_fact:
-    temp_font_dir_path: "/tmp/barlow_font_{{ 100000 | random }}"
-    temp_font_zip_path: "/tmp/barlow_font_{{ 100000 | random }}.zip"
+    temp_fonts_dir: "/tmp/fonts_{{ 100000 | random }}"
 
-- name: Create temporary directory for font download in /tmp
+# Create font directories
+- name: Create temporary directory for font downloads and extraction
   ansible.builtin.file:
-    path: "{{ temp_font_dir_path }}"
+    path: "{{ temp_fonts_dir }}"
     state: directory
     mode: '0777' # Ensure ansible user can write here
 
-- name: Download Barlow font files from GitHub (more reliable source)
+- name: Create subdirectories for different fonts
+  ansible.builtin.file:
+    path: "{{ temp_fonts_dir }}/{{ item }}"
+    state: directory
+    mode: '0777'
+  loop:
+    - "barlow"
+    - "jetbrains"
+
+# Barlow font installation
+- name: Download Barlow font files from GitHub
   ansible.builtin.get_url:
     url: "https://github.com/jpt/barlow/archive/refs/heads/master.zip"
-    dest: "{{ temp_font_zip_path }}"
-  register: font_download
+    dest: "{{ temp_fonts_dir }}/barlow.zip"
+  register: barlow_download
 
 - name: Extract Barlow font files
   ansible.builtin.unarchive:
-    src: "{{ temp_font_zip_path }}"
-    dest: "{{ temp_font_dir_path }}"
+    src: "{{ temp_fonts_dir }}/barlow.zip"
+    dest: "{{ temp_fonts_dir }}/barlow"
     remote_src: yes
-  register: unarchive_result
+  register: barlow_unarchive_result
 
 - name: Create system font directory for Barlow
   ansible.builtin.file:
@@ -43,7 +53,34 @@
     src: "{{ item }}"
     dest: /usr/local/share/fonts/truetype/barlow/
     mode: '0644'
-  loop: "{{ lookup('ansible.builtin.fileglob', temp_font_dir_path + '/barlow-master/fonts/ttf/*.ttf', wantlist=True) }}"
+  loop: "{{ lookup('ansible.builtin.fileglob', temp_fonts_dir + '/barlow/barlow-master/fonts/ttf/*.ttf', wantlist=True) }}"
+
+# JetBrains Mono Nerd Font installation
+- name: Download JetBrains Mono Nerd Font from GitHub
+  ansible.builtin.get_url:
+    url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/JetBrainsMono.zip"
+    dest: "{{ temp_fonts_dir }}/jetbrains.zip"
+  register: jetbrains_download
+
+- name: Extract JetBrains Mono Nerd Font files
+  ansible.builtin.unarchive:
+    src: "{{ temp_fonts_dir }}/jetbrains.zip"
+    dest: "{{ temp_fonts_dir }}/jetbrains"
+    remote_src: yes
+  register: jetbrains_unarchive_result
+
+- name: Create system font directory for JetBrains Mono Nerd Font
+  ansible.builtin.file:
+    path: /usr/local/share/fonts/truetype/jetbrainsmono-nerd
+    state: directory
+    mode: '0755'
+
+- name: Copy JetBrains Mono Nerd Font files
+  ansible.builtin.copy:
+    src: "{{ temp_fonts_dir }}/jetbrains/"
+    dest: /usr/local/share/fonts/truetype/jetbrainsmono-nerd/
+    mode: '0644'
+    remote_src: yes
 
 - name: Update font cache
   command: fc-cache -fv
@@ -51,18 +88,35 @@
 
 - name: Remove temporary font directory
   ansible.builtin.file:
-    path: "{{ temp_font_dir_path }}"
+    path: "{{ temp_fonts_dir }}"
     state: absent
-  when: temp_font_dir_path is defined
+  when: temp_fonts_dir is defined
 
 - name: Set Barlow as default interface font
   become: no # gsettings should run as the user
-  command: gsettings set org.gnome.desktop.interface font-name 'Barlow 11'
+  command: gsettings set org.gnome.desktop.interface font-name 'Barlow Medium 11'
 
 - name: Set Barlow as default document font
   become: no # gsettings should run as the user
-  command: gsettings set org.gnome.desktop.interface document-font-name 'Barlow 11'
+  command: gsettings set org.gnome.desktop.interface document-font-name 'Barlow Medium 11'
 
-- name: Set Barlow Condensed as default monospace font
+- name: Set JetBrainsMono Nerd Font as default monospace font
   become: no # gsettings should run as the user
-  command: gsettings set org.gnome.desktop.interface monospace-font-name 'Barlow Condensed 11'
+  command: gsettings set org.gnome.desktop.interface monospace-font-name 'JetBrainsMono Nerd Font Light 11'
+
+- name: Set window titlebar font
+  become: no # gsettings should run as the user
+  command: gsettings set org.gnome.desktop.wm.preferences titlebar-font 'Barlow Bold 11'
+
+- name: Configure font antialiasing
+  become: no # gsettings should run as the user
+  command: gsettings set org.gnome.desktop.interface font-antialiasing 'rgba'
+
+- name: Configure font hinting
+  become: no # gsettings should run as the user
+  command: gsettings set org.gnome.desktop.interface font-hinting 'slight'
+
+- name: Force user font cache rebuild
+  become: no # Should run as user
+  command: fc-cache -f ~/.local/share/fonts
+  changed_when: true
