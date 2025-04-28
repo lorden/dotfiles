@@ -1,0 +1,48 @@
+---
+# tasks file for installing Firefox via Mozilla APT repository
+- name: Ensure dependencies for Firefox installation are present
+  become: yes
+  apt:
+    name:
+      - wget
+      - gpg
+    state: present
+
+- name: Create directory for APT keys
+  become: yes
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Import Mozilla APT repository signing key
+  become: yes
+  get_url:
+    url: https://packages.mozilla.org/apt/repo-signing-key.gpg
+    dest: /etc/apt/keyrings/packages.mozilla.org.asc
+    mode: '0644'
+    force: yes
+
+- name: Add Mozilla APT repository
+  become: yes
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main"
+    state: present
+    filename: mozilla
+
+- name: Configure APT pinning for Mozilla repository
+  become: yes
+  copy:
+    dest: /etc/apt/preferences.d/mozilla
+    content: |
+      Package: *
+      Pin: origin packages.mozilla.org
+      Pin-Priority: 1000
+    mode: '0644'
+
+- name: Update APT cache and install Firefox
+  become: yes
+  apt:
+    name: firefox
+    state: present
+    update_cache: yes

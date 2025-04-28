@@ -32,28 +32,16 @@
         state: absent
         purge: yes
         autoremove: yes
-    
-    # Add Mozilla team PPA for Firefox
-    - name: Add Mozilla team PPA for Firefox
-      apt_repository:
-        repo: ppa:mozillateam/ppa
-        state: present
-    
-    # Set Firefox preference file to prefer the apt version
-    - name: Create preference file for Firefox
-      copy:
-        dest: /etc/apt/preferences.d/mozilla-firefox
-        content: |
-          Package: *
-          Pin: release o=LP-PPA-mozillateam
-          Pin-Priority: 1001
 
-    # Install essential applications
+    # Include Firefox setup tasks from firefox.yml
+    - name: Include Firefox setup tasks
+      include_tasks: firefox.yml
+
+    # Install essential applications (excluding Firefox, now handled by include_tasks)
     - name: Install applications
       apt:
         name:
           - tilix
-          - firefox
           - docker.io
           - docker-compose
           - vim
